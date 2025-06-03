@@ -1,0 +1,221 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Coursera Course Recommendation System</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: #f8f9fa;
+            padding-top: 30px;
+        }
+        .container {
+            max-width: 800px;
+            background-color: white;
+            padding: 30px;
+            border-radius: 10px;
+            box-shadow: 0 0 20px rgba(0, 0, 0, 0.1);
+        }
+        h1 {
+            color: #0066cc;
+            text-align: center;
+            margin-bottom: 20px;
+        }
+        h4 {
+            text-align: center;
+            color: #333;
+            margin-bottom: 30px;
+        }
+        .option-section {
+            background-color: #f7f7f7;
+            padding: 20px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+        }
+        .recommendation-section {
+            background-color: #e6f7ff;
+            padding: 20px;
+            border-radius: 8px;
+            margin-top: 30px;
+        }
+        .recommendation-item {
+            background-color: white;
+            padding: 15px;
+            border-radius: 5px;
+            margin-bottom: 10px;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.05);
+        }
+        .btn-primary {
+            background-color: #0066cc;
+            border: none;
+            width: 100%;
+            padding: 10px;
+            margin-top: 20px;
+        }
+        .btn-primary:hover {
+            background-color: #0055aa;
+        }
+        footer {
+            text-align: center;
+            margin-top: 30px;
+            color: #ff3333;
+            font-size: 0.8rem;
+        }
+        .loading {
+            text-align: center;
+            display: none;
+            margin: 20px 0;
+        }
+        .spinner-border {
+            width: 3rem; 
+            height: 3rem;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Coursera Course Recommendation System</h1>
+        <h4>Find similar courses from a dataset of over 3,000 courses from Coursera!</h4>
+        
+        <div class="option-section">
+            <h5>Option 1: Select an existing course</h5>
+            <select id="courseSelect" class="form-select">
+                <option value="">Select a course...</option>
+                <!-- Course options will be loaded here via JavaScript -->
+            </select>
+        </div>
+        
+        <div class="option-section">
+            <h5>Option 2: Enter any course name/topic</h5>
+            <input type="text" id="customCourse" class="form-control" placeholder="Enter a course name or topic of interest">
+        </div>
+        
+        <button id="recommendButton" class="btn btn-primary">Show Recommended Courses</button>
+        
+        <div class="loading" id="loadingSpinner">
+            <div class="spinner-border text-primary" role="status">
+                <span class="visually-hidden">Loading...</span>
+            </div>
+            <p>Finding the best recommendations for you...</p>
+        </div>
+        
+        <div class="recommendation-section" id="recommendationSection" style="display: none;">
+            <h5 id="recommendationTitle">Recommended Courses based on: <span id="basedOn"></span></h5>
+            <div id="recommendationResults">
+                <!-- Results will be populated here -->
+            </div>
+        </div>
+        
+        <footer>
+            <p>Copyright reserved by Coursera and Respective Course Owners</p>
+        </footer>
+    </div>
+
+    <script>
+        // This would typically fetch from your Python backend
+        // For demo purposes, we'll use a simplified approach
+        
+        document.addEventListener('DOMContentLoaded', async function() {
+            // Load the course list from the Python backend
+            try {
+                // This URL should point to your Python backend when it's running
+                const response = await fetch('http://localhost:5000/courses');
+                const courses = await response.json();
+                
+                const selectElement = document.getElementById('courseSelect');
+                courses.forEach(course => {
+                    const option = document.createElement('option');
+                    option.value = course;
+                    option.textContent = course;
+                    selectElement.appendChild(option);
+                });
+            } catch (error) {
+                console.error('Error loading courses:', error);
+                // For demo - add some placeholder courses
+                const placeholders = [
+                    "Introduction to Python Programming",
+                    "Machine Learning Fundamentals",
+                    "Data Science Specialization",
+                    "Web Development with HTML, CSS and JavaScript",
+                    "Business Strategy Business Model Canvas Analysis with Miro"
+                ];
+                
+                const selectElement = document.getElementById('courseSelect');
+                placeholders.forEach(course => {
+                    const option = document.createElement('option');
+                    option.value = course;
+                    option.textContent = course;
+                    selectElement.appendChild(option);
+                });
+            }
+            
+            // Handle recommendation button click
+            document.getElementById('recommendButton').addEventListener('click', async function() {
+                const selectedCourse = document.getElementById('courseSelect').value;
+                const customCourse = document.getElementById('customCourse').value;
+                
+                // Determine which input to use
+                const courseToUse = customCourse ? customCourse : selectedCourse;
+                
+                if (!courseToUse) {
+                    alert('Please select a course or enter a custom course name');
+                    return;
+                }
+                
+                // Show loading indicator
+                document.getElementById('loadingSpinner').style.display = 'block';
+                document.getElementById('recommendationSection').style.display = 'none';
+                
+                try {
+                    // This would call your Python backend API
+                    // For demo purposes, we'll simulate a response
+                    let recommendations;
+                    
+                    try {
+                        // This URL should point to your Python backend when it's running
+                        const response = await fetch(`http://localhost:5000/recommend?course=${encodeURIComponent(courseToUse)}`);
+                        recommendations = await response.json();
+                    } catch (error) {
+                        console.error('Error fetching recommendations:', error);
+                        // For demo - generate some mock recommendations
+                        recommendations = [
+                            "Python for Everybody",
+                            "Applied Data Science with Python",
+                            "Deep Learning Specialization",
+                            "IBM Data Science Professional Certificate",
+                            "Google IT Automation with Python",
+                            "AI for Everyone"
+                        ];
+                    }
+                    
+                    // Hide loading and show results
+                    document.getElementById('loadingSpinner').style.display = 'none';
+                    document.getElementById('recommendationSection').style.display = 'block';
+                    
+                    // Update the UI
+                    document.getElementById('basedOn').textContent = courseToUse;
+                    
+                    const resultsContainer = document.getElementById('recommendationResults');
+                    resultsContainer.innerHTML = '';
+                    
+                    recommendations.forEach((course, index) => {
+                        const item = document.createElement('div');
+                        item.className = 'recommendation-item';
+                        item.innerHTML = `<strong>${index + 1}.</strong> ${course}`;
+                        resultsContainer.appendChild(item);
+                    });
+                    
+                } catch (error) {
+                    console.error('Error:', error);
+                    document.getElementById('loadingSpinner').style.display = 'none';
+                    alert('Error getting recommendations. Please try again.');
+                }
+            });
+        });
+    </script>
+    
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>
